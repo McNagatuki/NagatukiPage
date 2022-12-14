@@ -10,8 +10,8 @@ function judge() {
     const ms = today.getTime() - startDay.getTime();
     const days = Math.floor(ms / (1000*60*60*24));
 
-    const minecraftStyleDisplay = (ms % 2 == 0) ? "" : "none";
-    const neetStyleDisplay = (ms % 2 == 0) ? "none" : "";
+    const minecraftStyleDisplay = (days % 2 == 0) ? "" : "none";
+    const neetStyleDisplay = (days % 2 == 0) ? "none" : "";
     Array.prototype.forEach.call(targetMinecraft, e => e.style.display = minecraftStyleDisplay);
     Array.prototype.forEach.call(targetNeet, e => e.style.display = neetStyleDisplay);
 }
