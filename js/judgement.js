@@ -1,6 +1,4 @@
-// window.onload = function() {
 function judge() {
-    //ここにJavaScriptのコードを記述
     const targetMinecraft = document.getElementsByClassName("minecraft");
     const targetNeet = document.getElementsByClassName("neet");
 
