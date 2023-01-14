@@ -1,4 +1,23 @@
-#field{
+h1 {
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  background-color: #313131;
+}
+
+#content {
+  display: flex;
+  justify-content: center; 
+  flex-direction: column; 
+  align-items: center; 
+  margin: 25px;
+  margin-top: 0%;
+  margin: 0 auto;
+  max-width: 415pt;
+  height: auto;
+}
+
+#field {
     display: flex;
     justify-content: center;
 }
@@ -6,6 +25,24 @@
 textarea {
   resize: none;
   font-size: large;
+  width: 100%;
+  height: auto;
+}
+
+#shuffle_btn {
+  justify-content: center;
+  width: 99%;
+  box-sizing:border-box;
+  position: relative;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 0 auto;
+  padding: 10px 25px;
+  color: #313131;
+  font-weight: 600;
+  background: #eee;
+  border-radius: 3px;
 }
 
 table {
