@@ -30,7 +30,7 @@ function clicked() {
 
     for (let i = 0; i < roles.length; ++i) {
         const tr = tBodies.insertRow(-1);
-        tr.insertCell(0).appendChild(document.createTextNode(shuffledName[i]));
-        tr.insertCell(1).appendChild(document.createTextNode(roles[i]));
+        tr.insertCell(0).appendChild(document.createTextNode(roles[i]));
+        tr.insertCell(1).appendChild(document.createTextNode(shuffledName[i]));
     }
 }
