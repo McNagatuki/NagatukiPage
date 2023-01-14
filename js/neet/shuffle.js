@@ -9,9 +9,7 @@ function arrayShuffle(array) {
 }
 
 function clicked() {
-    const rowNames = document.getElementById("names").value;
-    const names = rowNames.split("\n").map(e => e.replace(/\s/g, "")).filter(e => e.length > 0);
-
+    // 使用する役職を取得
     const roles = [];
     document.querySelectorAll("#roles > div")
         .forEach(element => {
@@ -21,8 +19,17 @@ function clicked() {
             }
         });
     
+    // 参加するプレイヤーを取得
+    const rowNames = document.getElementById("names").value;
+    const names = rowNames.split("\n").map(e => e.replace(/\s/g, "")).filter(e => e.length > 0);
+
+    // プレイヤー数が役職数に満たない場合はNoneで埋める
+    while (names.length < roles.length) names.push("None");
+
+    // シャッフル
     const shuffledName = arrayShuffle(names);
 
+    // テーブルに結果を格納する
     const tBodies = document.getElementById("results").tBodies[0];
     while (tBodies.firstChild) {
         tBodies.removeChild(tBodies.firstChild);
