@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>ニート部 Dread Hunger シャッフル</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="css/neet/shuffle.css">
+        <script src="js/neet/shuffle.js"></script>
+    </head>
+    <body>
+        <h1>Dread Hunger 役職シャッフル</h1>
+        <form>
+            <div id="field">
+                <fieldset id="players">
+                    <legend>参加するプレイヤーを入力してください</legend>
+                    <textarea id="names" autocomplete="on" rows="8" placeholder="例: Nagatuki" required></textarea>
+                </fieldset>
+
+                <fieldset id="roles">
+                    <legend>使用する役職を選んでください。</legend>
+
+                    <div>
+                        <input id="captain" class="toggle_input" type="checkbox" checked>
+                        <label for="captain" class="toggle_label">船長</label>
+                    </div>
+
+                    <div>
+                        <input id="chaplain" type="checkbox" checked>
+                        <label for="chaplain" class="toggle_label">牧師</label>
+                    </div>
+
+                    <div>
+                        <input id="cook" type="checkbox" checked>
+                        <label for="cook" class="toggle_label">料理人</label>
+                    </div>
+
+                    <div>
+                        <input id="doctor" type="checkbox" checked>
+                        <label for="doctor" class="toggle_label">医師</label>
+                    </div>
+
+                    <div>
+                        <input id="engineer" type="checkbox" checked>
+                        <label for="engineer" class="toggle_label">技師</label>
+                    </div>
+
+                    <div>
+                        <input id="hunter" type="checkbox" checked>
+                        <label for="hunter" class="toggle_label">猟師</label>
+                    </div>
+
+                    <div>
+                        <input id="marine" type="checkbox" checked>
+                        <label for="marine" class="toggle_label">海兵</label>
+                    </div>
+
+                    <div>
+                        <input id="navigator" type="checkbox" checked>
+                        <label for="navigator" class="toggle_label">航海士</label>
+                    </div>
+                </fieldset>
+            </div>
+        </form>
+        
+        <button type="button" onclick="clicked()">シャッフル</button>
+
+        <table id="results">
+            <thead>
+                <tr>
+                    <th>役職</th>
+                    <th>プレイヤー名</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </body>
+</html>
