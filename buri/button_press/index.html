@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>タイミングゲーム</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        #gameContainer {
+            position: relative;
+            width: 500px;
+            height: 200px;
+            margin: 0 auto;
+            border: 1px solid #000;
+        }
+        #indicator {
+            position: absolute;
+            left: 20%;
+            top: 0;
+            transform: translateX(-50%);
+            border-left: 2px solid red;
+            height: 100%;
+        }
+        #box {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            background-color: blue;
+            /* transition: right 5s linear; */
+        }
+
+    </style>
+</head>
+<body>
+    <h1>タイミングゲーム</h1>
+    <p>青いボックスが右から流れてきます。赤い目印と重なったら、スペースキーを押してください。</p>
+    <p>タイミングよく押せた回数を競います。</p>
+    <p id="result">　</p>
+    <div id="gameContainer">
+        <div id="box"></div>
+        <div id="indicator"></div>
+    </div>
+    <button id="startButton" onclick="startGame()">スタート</button>
+    <input type="file" id="csvInput" accept=".csv">
+    <script>
+        /* 設定 */
+        // const maxTrials = 10;
+        // const boxWidth = 50;
+        // const moveTime = 1.5;
+
+        /* パラメータ */
+        let score = 0;
+        let eventLog = [];
+        let buttonLog = [];
+        let gameStarted = false;
+        let gameSettings = null;
+
+        let trial = 0;
+        let inTrial = false;
+        let startTime = null;
+        let animationId = null; 
+
+        /* 実装ここから */
+        const container = document.getElementById('gameContainer')
+        const indicator = document.getElementById("indicator");
+        const box = document.getElementById("box");
+        const startButton = document.getElementById("startButton");
+        const csvInput = document.getElementById("csvInput");
+
+        // CSVファイルを読み込んでゲーム設定を取得
+        csvInput.addEventListener("change", function (event) {
+            if (gameStarted){
+                return;
+            }
+
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const csvData = e.target.result;
+                    gameSettings = parseCSV(csvData);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function parseCSV(csv) {
+            const lines = csv.split("\n");
+            const settings = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const columns = lines[i].split(",");
+                if (columns.length === 3) {
+                    const trial = parseInt(columns[0]);
+                    const time = parseFloat(columns[1]);
+                    const width = parseFloat(columns[2]);
+                    settings.push({ trial, time, width });
+                }
+            }
+
+            return settings;
+        }
+
+
+        // ゲーム処理
+        function startGame() {
+            if (gameStarted){
+                alert('ゲームはすでに始まっています。')
+                return;
+            }
+            
+            if (!gameSettings){
+                alert('設定が読み込まれていません。')
+                return;
+            }
+
+            gameStarted = true;
+            startButton.disabled = true;
+    
+            score = 0;
+            trial = 0;  
+            eventLog = [];
+            buttonLog = [];
+            inTrial = false;
+            startTime = (new Date()).getTime();
+
+            startTrial();
+        }
+
+        function endGame() {
+            gameStarted = false;
+            startButton.disabled = false;
+
+            gameSettings = null;
+
+            alert(`終了です。スコア: ${score}`);
+            saveGameResults();
+        }
+
+        function startTrial() {
+            ++trial;
+            hideMessage();
+
+            // ログの記録
+            logRecord(trial, 'trial start');
+
+            // 設定の読み込み
+            if (trial - 1 >= gameSettings.length) {
+                endTrial();
+            }
+            gameSetting = gameSettings[trial - 1];
+            movTime = gameSetting["time"];
+            width = gameSetting['width'];
+
+            console.log(`trial: ${trial} / time: ${movTime} / widht: ${width}`);
+
+            // Box動作までの時間（1~2秒）
+            const boxWaitTime = Math.random() * 1000 + 1000;
+            moveBox(width, movTime, boxWaitTime);
+        }
+
+        function endTrial(){
+            // ログの記録
+            logRecord(trial, 'trial end');
+
+            if (trial - 1 >= gameSettings.length) {
+                endGame();        
+            }
+            else {
+                startTrial();
+            }
+
+        };
+
+        function moveBox(boxWidth, boxMoveTimeSec, boxWaitTimeMsec) {
+            inTrial = true;
+
+            const containerRight = container.getBoundingClientRect().right;
+            const containerLeft = container.getBoundingClientRect().left;
+            const containerWidth = containerRight - containerLeft;
+
+            box.style.width = `${boxWidth}px`;
+            box.style.right = "0";
+            box.style.transition = "none";
+
+            setTimeout(() => {
+                // ログの記録
+                logRecord(trial, 'box move start');
+
+                let startTimestamp = null;
+                let lastTimestamp = null;
+
+                function animate(timestamp) {
+                    if (!startTimestamp) {
+                        startTimestamp = timestamp;
+                        lastTimestamp = timestamp;
+                    }
+                    const elapsed = (timestamp - startTimestamp) / 1000;  // 秒単位
+
+                    if (elapsed >= boxMoveTimeSec) {
+                        box.style.right = `${containerWidth - boxWidth}px`;
+                        logRecord(trial, 'box move end');
+
+                        if (inTrial) {
+                            setFailureMessage();
+                            logButton(trial, 0);
+                        }
+
+                        setTimeout(() => {
+                            logRecord(trial, 'feedback end');
+                            endTrial();
+                        }, 1000);  // 1秒はフィードバックの表示時間
+                    }
+                    
+                    else {
+                        const deltaTime = (timestamp - lastTimestamp) / 1000;
+                        lastTimestamp = timestamp;
+                        const newPosition = (containerWidth - boxWidth) * (elapsed / boxMoveTimeSec);
+                        box.style.right = `${newPosition}px`;
+                        animationId = requestAnimationFrame(animate);
+                    }
+                }
+
+                animationId = requestAnimationFrame(animate);
+            }, boxWaitTimeMsec);
+        };
+
+        function stopBox() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+
+        function setSuccessMessage() {
+            const element = document.getElementById("result");
+            if (element) {
+                element.textContent = "成功";
+                element.style.color = "green";
+            }
+        };
+
+        function setFailureMessage() {
+            const element = document.getElementById("result");
+            if (element) {
+                element.textContent = "失敗";
+                element.style.color = "red";
+            }
+        };
+
+        function hideMessage() {
+            const element = document.getElementById("result");
+            if (element) {
+                element.textContent = "　";
+            }
+        };
+
+        function logRecord(trial, detail) {
+            eventLog.push(
+                {
+                    "time": (new Date()).getTime() - startTime,
+                    "trial": trial,
+                    "detail": detail,
+                }
+            );
+        }
+
+        function logButton(trial, result) {
+            const boxLeft = box.getBoundingClientRect().left;
+            const boxRight = box.getBoundingClientRect().right;
+
+            const indicatorLeft = indicator.getBoundingClientRect().left;
+            const indicatorRight = indicator.getBoundingClientRect().right;
+            const indicatorCenter = (indicatorLeft + indicatorRight) / 2; 
+
+            buttonLog.push(
+                {
+                    "time": (new Date()).getTime() - startTime,
+                    "trial": trial,
+                    "result": result,
+                    "box_left": boxLeft,
+                    "box_right": boxRight,
+                    "indicator": indicatorCenter
+                }
+            );
+        }
+
+        function saveGameResults() {
+            const gameResults = { eventLog, buttonLog };
+            const currentTime = new Date().toISOString().replace(/[^0-9]/g, '');
+            const fileName = `game_results_${currentTime}.json`;
+
+            // JSONデータを文字列に変換
+            const jsonData = JSON.stringify(gameResults);
+
+            // ダウンロード用のリンクを作成
+            const a = document.createElement('a');
+            a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(jsonData);
+            a.download = fileName;
+            a.innerHTML = 'Download JSON';
+
+            // リンクをクリックしてファイルをダウンロード
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        document.addEventListener("keydown", function (e) {
+            if (inTrial && e.key === " ") {
+                // ログの記録
+                logRecord(trial, 'button press');
+
+                const boxLeft = box.getBoundingClientRect().left;
+                const boxRight = box.getBoundingClientRect().right;
+
+                const indicatorLeft = indicator.getBoundingClientRect().left;
+                const indicatorRight = indicator.getBoundingClientRect().right;
+                const indicatorCenter = (indicatorLeft + indicatorRight) / 2;   
+                
+                if (boxLeft <= indicatorCenter && indicatorCenter <= boxRight){
+                    score++;
+                    setSuccessMessage();
+                    logButton(trial, 1);
+                }
+                else {
+                    setFailureMessage();
+                    logButton(trial, 0);
+                }
+                
+                stopBox();
+                inTrial = false;
+
+                setTimeout(() => {
+                    logRecord(trial, 'feedback end');
+                    endTrial();
+                }, 1000);  // 1秒はフィードバックの表示時間
+            }
+        });
+
+        // スペースキーによるスクロールをキャンセル
+        window.addEventListener("keydown", function (e) {
+            if (e.key === " ") {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
